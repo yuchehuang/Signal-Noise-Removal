@@ -1,5 +1,6 @@
 clc
 close all
+
 %% ------------------Parameter-------------------
 Fs=1000;
 Ts=1/Fs;
@@ -7,18 +8,18 @@ Length=3000;
 t=(0:Length-1)*Ts;
 Excel(1:5,1:50)=0;
 %% ------------------Signal & NOise-------------------
-section_length=[0 704 1005 1709 2002 2296 ];
-y1=noise+signal;
+section_length=[0 704 1005 1709 2002 2296 ]; %% the segment length of the signal (dividing based on the signal type)
+y1=noise+signal; 
 New=signal;
 i=1;
 for segment=2:3:5  % set which section u want to compute
     s=signal(section_length(segment)+1:section_length(segment+1));
     N=noise(section_length(segment)+1:section_length(segment+1));
     n2=y1(section_length(segment)+1:section_length(segment+1));
-    Size= size(s);
+    Signal_Length= size(s);
     %figure(segment);
     subplot(4,3,i);
-    plot(t(1:Size(2)),s);
+    plot(t(1:Signal_Length(2)),s);
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
     txt=sprintf('Original Signal Segment %d', segment);
@@ -27,18 +28,19 @@ for segment=2:3:5  % set which section u want to compute
     
 %%  plot signal+noise figure    
     subplot(4,3,i+3);
-    plot(t(1:Size(2)),n2)      %x unit ms
-    Length=Size(2);
+    plot(t(1:Signal_Length(2)),n2)      %x unit ms
+    Length=Signal_Length(2);
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
     txt=sprintf('Noisy Signal   PSNR= %f dB', psnr(s,n2,255));
     title(txt);
         
-%% -----------Different moving Filter----------------------------
+%% ----------- Moving Different Filter----------------------------
 hpf=[1 -1];
 temp = conv2(hpf,s);
+output=MDF(s)
 subplot(4,3,i+6);
-plot(t(1:Size(2)),temp(1:Size(2)));
+plot(t(1:Signal_Length(2)),output(1:Signal_Length(2)));
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
     title('MDF for original signal');    
@@ -72,10 +74,10 @@ for segment=4:4  % set which section u want to compute
     s=signal(section_length(segment)+1:section_length(segment+1));
     N=noise(section_length(segment)+1:section_length(segment+1));
     n2=y1(section_length(segment)+1:section_length(segment+1));
-    Size= size(s);
+    Signal_Length= size(s);
     %figure(segment);
     subplot(4,3,2);
-    plot(t(1:Size(2)),s);
+    plot(t(1:Signal_Length(2)),s);
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
     txt=sprintf('Original Signal Segment %d', segment);
@@ -84,8 +86,8 @@ for segment=4:4  % set which section u want to compute
     
 %%  plot signal+noise figure    
     subplot(4,3,5);
-    plot(t(1:Size(2)),n2)      %x unit ms
-    Length=Size(2);
+    plot(t(1:Signal_Length(2)),n2)      %x unit ms
+    Length=Signal_Length(2);
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
     txt=sprintf('Noisy Signal   PSNR= %f dB', psnr(s,n2,255));
@@ -95,7 +97,7 @@ for segment=4:4  % set which section u want to compute
 hpf=[1 -1];
 temp = conv2(hpf,s);
 subplot(4,3,8);
-plot(t(1:Size(2)),temp(1:Size(2)));
+plot(t(1:Signal_Length(2)),temp(1:Signal_Length(2)));
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
     title('MDF for original signal');    
@@ -124,6 +126,15 @@ plot(t(1:Size(2)),temp(1:Size(2)));
 %     FFT_value=P1(1:NFFT/2);
     
 end 
+
+
+%% FFT Function 
+function output=MDF(input_signal)
+hpf=[1 -1];
+output = conv2(hpf,input_signal);
+
+end
+
 % figure(6);
 % subplot(3,1,1)
 % plot(t(1:2296),signal);
