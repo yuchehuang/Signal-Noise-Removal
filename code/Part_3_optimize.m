@@ -108,6 +108,7 @@ for section=1:fix(Size(2)/N)
     Output(round(threshold*N):N)=0;
     Fix(N*(section-1)+1:(N*section))= idct(Output);    
 end 
+
 if rem(Size(2),N)>0
     clear transform_array
     clear temp

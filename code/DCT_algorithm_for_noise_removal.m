@@ -7,38 +7,41 @@ Ts=1/Fs;
 Length=3000;
 t=(0:Length-1)*Ts;
 
-%% ------------------Signal & NOise-------------------
+%% ------------------Signal & NOise Delcare -------------------
 section_length=[0 704 1005 1709 2002 2296 ];
-y1=noise+signal;
-New=y1;
-N=40; 
+Mix=noise+signal;
+Recover_signal_temp=zeros(1,size(signal,2)); %create a new vector for recover signal used
+N=40; % size of DCT martix 
+
+
+%% ------------------Algorithm -------------------
 for segment=1:5  % set which section u want to compute
     clear Fix
-    s=signal(section_length(segment)+1:section_length(segment+1));
+    Original_signal_segment=signal(section_length(segment)+1:section_length(segment+1));
     n=noise(section_length(segment)+1:section_length(segment+1));
-    n2=y1(section_length(segment)+1:section_length(segment+1));
-    Fix=s;
-    Size= size(s);
+    Mix_Signal=Mix(section_length(segment)+1:section_length(segment+1));
+    Size= size(Original_signal_segment,2);
+    Signal_Segment=zeros(1,Size);
     figure(segment);
     subplot(4,1,1);
-    plot(t(1:Size(2)),s);
+    plot(t(1:Size),Original_signal_segment);
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
     title('Original Signal');
     
-%%  plot signal+noise figure    
+%%  plot the contaminated signal     
     subplot(4,1,2);
-    plot(t(1:Size(2)),n2)      %x unit ms
-    Length=Size(2);
+    plot(t(1:Size),Mix_Signal)      % unit ms
+    Length=Size;
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
-    txt=sprintf('Noise Signal   PSNR= %f dB', psnr(s,n2,255));
+    txt=sprintf('Noise Signal   PSNR= %f dB', psnr(Original_signal_segment,Mix_Signal,255));
     title(txt);
     
 %% ------(Original) Frequency Domain------------------------------- 
     NFFT = 2^nextpow2(Length);
-    Y=fft(s,NFFT);
-    P2 = abs(Y/Length);
+    FFT_output=fft(Original_signal_segment,NFFT);
+    P2 = abs(FFT_output/Length);
     P1 = P2(1:NFFT/2+1);
     P1(2:end-1) = 2*P1(2:end-1);
     subplot(4,1,3);
@@ -50,16 +53,16 @@ for segment=1:5  % set which section u want to compute
     
 %% ------(With Noise) Frequency Domain------------------------------- 
     NFFT = 2^nextpow2(Length);
-    Y=fft(n2,NFFT);
-    P2 = abs(Y/Length);
+    FFT_output=fft(Mix_Signal,NFFT);
+    P2 = abs(FFT_output/Length);
     P1 = P2(1:NFFT/2+1);
     P1(2:end-1) = 2*P1(2:end-1);
     plot(0:(1/NFFT):(1/2-1/NFFT),P1(1:NFFT/2),'R')
     FFT_value=P1(1:NFFT/2);
- %% ---------DCT  Denoise Operation---------------------
+ %% ---------DCT  Denoise Initialisation---------------------
  clear transform_array
- clear temp
- clear Output
+ clear DCT_temp
+ clear DCT_Output
  MAX=0;
  Compare_PSNR=0;
  
@@ -67,91 +70,91 @@ for segment=1:5  % set which section u want to compute
  for test_threshold =1:100
     threshold=test_threshold/10; 
     transform_array = dct(eye(N));
-        for section=1:fix(Size(2)/N)
-            temp(1:N)=s((N*(section-1))+1:(N*section));
-            Output=transform_array*temp';
+        for section=1:fix(Size/N)
+            DCT_temp(1:N)=Original_signal_segment((N*(section-1))+1:(N*section));
+            DCT_Output=transform_array*DCT_temp';
             for compare=1:N
-                if abs(Output(compare))< threshold
-                    Output(compare)=0; 
+                if abs(DCT_Output(compare))< threshold
+                    DCT_Output(compare)=0; 
                 end
             end         
-            Fix(N*(section-1)+1:(N*section))= idct(Output);    
+            Signal_Segment(N*(section-1)+1:(N*section))= idct(DCT_Output);    
         end 
         
-        if rem(Size(2),N)>0
+        if rem(Size,N)>0
             clear transform_array
-            clear temp
-            clear Output
-            transform_array = dct(eye(rem(Size(2),N)));
-            temp=s(N*fix(Size(2)/N)+1:Size(2));
-            Output=transform_array*temp';
-            for compare=1:rem(Size(2),N)
-                if abs(Output(compare))< threshold
-                    Output(compare)=0;
+            clear DCT_temp
+            clear DCT_Output
+            transform_array = dct(eye(rem(Size,N)));
+            DCT_temp=Original_signal_segment(N*fix(Size/N)+1:Size);
+            DCT_Output=transform_array*DCT_temp';
+            for compare=1:rem(Size,N)
+                if abs(DCT_Output(compare))< threshold
+                    DCT_Output(compare)=0;
                 end
             end    
-            remain=idct(Output);
-            Fix(N*fix(Size(2)/N)+1:Size(2))= remain;
+            remain=idct(DCT_Output);
+            Signal_Segment(N*fix(Size/N)+1:Size)= remain;
         end 
         
-        if Compare_PSNR < psnr(s,Fix,255)
-            Compare_PSNR= psnr(s,Fix,255);
+        if Compare_PSNR < psnr(Original_signal_segment,Signal_Segment,255)
+            Compare_PSNR= psnr(Original_signal_segment,Signal_Segment,255);
             MAX=threshold;
         end 
         
        
  end
 
- %% -----Calculation the optimized performance--------------------
+ %% -----DCT Calculation for optimisation--------------------
  clear transform_array
- clear temp
- clear Output
+ clear DCT_temp
+ clear DCT_Output
  
  threshold= MAX; 
  transform_array = dct(eye(N));
-        for section=1:fix(Size(2)/N)
-            temp(1:N)=s((N*(section-1))+1:(N*section));
-            Output=transform_array*temp';
+        for section=1:fix(Size/N)
+            DCT_temp(1:N)=Original_signal_segment((N*(section-1))+1:(N*section));
+            DCT_Output=transform_array*DCT_temp';
             for compare=1:N
-                if abs(Output(compare))< threshold
-                    Output(compare)=0; 
+                if abs(DCT_Output(compare))< threshold
+                    DCT_Output(compare)=0; 
                 end
             end
             
-            Fix(N*(section-1)+1:(N*section))= idct(Output);    
+            Signal_Segment(N*(section-1)+1:(N*section))= idct(DCT_Output);    
         end 
         
-        if rem(Size(2),N)>0
+        if rem(Size,N)>0
             clear transform_array
-            clear temp
-            clear Output
-            transform_array = dct(eye(rem(Size(2),N)));
-            temp=s(N*fix(Size(2)/N)+1:Size(2));
-            Output=transform_array*temp';
-            for compare=1:rem(Size(2),N)
-                if abs(Output(compare))< threshold
-                    Output(compare)=0;
+            clear DCT_temp
+            clear DCT_Output
+            transform_array = dct(eye(rem(Size,N)));
+            DCT_temp=Original_signal_segment(N*fix(Size/N)+1:Size);
+            DCT_Output=transform_array*DCT_temp';
+            for compare=1:rem(Size,N)
+                if abs(DCT_Output(compare))< threshold
+                    DCT_Output(compare)=0;
                 end
             end    
-            remain=idct(Output);
-            Fix(N*fix(Size(2)/N)+1:Size(2))= remain;
+            remain=idct(DCT_Output);
+            Signal_Segment(N*fix(Size/N)+1:Size)= remain;
         end 
 
  %% using NxN for executing remaining element
 % if rem(Size(2),N)>0
 %     clear temp
-%     temp(1:N-rem(Size(2),N))=0;
-%     temp=[s(N*fix(Size(2)/N)+1:Size(2)) temp]
+%     temp(1:N-rem(Size,N))=0;
+%     temp=[s(N*fix(Size/N)+1:Size) temp]
 %     Output=transform_array*temp';
 %     Output(round(0.2*N):N)=0;
 %     remain=idct(Output);
-%     Fix(N*fix(Size(2)/N)+1:Size(2))= remain(1:rem(Size(2),N));
+%     Fix(N*fix(Size/N)+1:Size(2))= remain(1:rem(Size(2),N));
 % end
 
     
 %% -------------(Denoise) Frequency Domain---------------------
-    Y=fft(Fix,NFFT);
-    P2 = abs(Y/Length);
+    FFT_output=fft(Signal_Segment,NFFT);
+    P2 = abs(FFT_output/Length);
     P1 = P2(1:NFFT/2+1);
     P1(2:end-1) = 2*P1(2:end-1);
     plot(0:(1/NFFT):(1/2-1/NFFT),P1(1:NFFT/2),'G');
@@ -163,14 +166,17 @@ for segment=1:5  % set which section u want to compute
     
 %% ----------------IFFT----------------------------
 subplot(4,1,4);
-plot(t(1:Size(2)),Fix);
-sprintf('Denoise PSNR for S2: %f', psnr(s,Fix,255));
+plot(t(1:Size),Signal_Segment);
+sprintf('Denoise PSNR for S2: %f', psnr(Original_signal_segment,Signal_Segment,255));
 xlabel('time (s)'); 
 ylabel('voltage (mV)');
-txt=sprintf('Dnoise Signal PSNR=%.3f dB N =%d', psnr(s,Fix,255), N);
+txt=sprintf('Dnoise Signal PSNR=%.3f dB N =%d', psnr(Original_signal_segment,Signal_Segment,255), N);
 title(txt);
-New(section_length(segment)+1:section_length(segment+1))=Fix;
+Recover_signal_temp(section_length(segment)+1:section_length(segment+1))=Signal_Segment;
 end 
+
+
+%% ----------------Plot the Recovered Signal----------------------------
 figure(6);
 subplot(3,1,1)
 plot(t(1:2296),signal);
@@ -179,17 +185,17 @@ plot(t(1:2296),signal);
     title('Original Signal ');
     
 subplot(3,1,2)
-plot(t(1:2296),y1);
+plot(t(1:2296),Mix);
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
-    txt=sprintf('Noise & Singal  PSNR=%f dB', psnr(signal,y1,255));
+    txt=sprintf('Noise & Singal  PSNR=%f dB', psnr(signal,Mix,255));
     title(txt); 
     
 subplot(3,1,3)
-plot(t(1:2296),New);
+plot(t(1:2296),Recover_signal_temp);
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
-    txt=sprintf('Denoise Signal  PSNR=%f dB', psnr(signal,New,255));
+    txt=sprintf('Denoise Signal  PSNR=%f dB', psnr(signal,Recover_signal_temp,255));
     title(txt);
     
     
