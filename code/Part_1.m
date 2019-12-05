@@ -9,17 +9,18 @@ t=(0:Length-1)*Ts;
 Excel(1:5,1:50)=0;
 %% ------------------Signal & NOise-------------------
 section_length=[0 704 1005 1709 2002 2296 ]; %% the segment length of the signal (dividing based on the signal type)
-y1=noise+signal; 
-New=signal;
-i=1;
-for segment=2:3:5  % set which section u want to compute
+Plot_column=5; %% 5 segment of signal
+row=[0*Plot_column,1*Plot_column,2*Plot_column,3*Plot_column];
+mix_signal=noise+signal; 
+
+for segment=1:5  % set which section u want to compute
     s=signal(section_length(segment)+1:section_length(segment+1));
     N=noise(section_length(segment)+1:section_length(segment+1));
-    n2=y1(section_length(segment)+1:section_length(segment+1));
-    Signal_Length= size(s);
+    n2=mix_signal(section_length(segment)+1:section_length(segment+1));
+    Signal_Length= size(s,2);
     %figure(segment);
-    subplot(4,3,i);
-    plot(t(1:Signal_Length(2)),s);
+    subplot(4,Plot_column,segment+row(1));
+    plot(t(1:Signal_Length),s);
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
     txt=sprintf('Original Signal Segment %d', segment);
@@ -27,20 +28,18 @@ for segment=2:3:5  % set which section u want to compute
    
     
 %%  plot signal+noise figure    
-    subplot(4,3,i+3);
-    plot(t(1:Signal_Length(2)),n2)      %x unit ms
-    Length=Signal_Length(2);
+    subplot(4,Plot_column,segment+row(2));
+    plot(t(1:Signal_Length),n2)      %x unit ms
+    Length=Signal_Length;
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
     txt=sprintf('Noisy Signal   PSNR= %f dB', psnr(s,n2,255));
     title(txt);
         
 %% ----------- Moving Different Filter----------------------------
-hpf=[1 -1];
-temp = conv2(hpf,s);
-output=MDF(s)
-subplot(4,3,i+6);
-plot(t(1:Signal_Length(2)),output(1:Signal_Length(2)));
+    MDF_output=MDF(s);
+    subplot(4,Plot_column,segment+row(3));
+    plot(t(1:Signal_Length),MDF_output(1:Signal_Length));
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
     title('MDF for original signal');    
@@ -50,71 +49,13 @@ plot(t(1:Signal_Length(2)),output(1:Signal_Length(2)));
     P2 = abs(Y/Length);
     P1 = P2(1:NFFT/2+1);
     P1(2:end-1) = 2*P1(2:end-1);
-    subplot(4,3,i+9);
+    subplot(4,Plot_column,segment+row(4));
     plot(0:(1/NFFT):(1/2-1/NFFT),P1(1:NFFT/2))   %0:(Fs/NFFT):(Fs/2-Fs/NFFT)-- not normalization
     xlabel('Normalised Frequency (f)'); 
     ylabel('voltage (mV)');
     title('FFT');    
-    
- i=i+2;   
-%% ---------(With Noise) Frequency Domain------------ 
-
-%     NFFT = 2^nextpow2(Length);
-%     Y=fft(n2,NFFT);
-%     P2 = abs(Y/Length);
-%     P1 = P2(1:NFFT/2+1);
-%     P1(2:end-1) = 2*P1(2:end-1);
-%     subplot(4,1,4);
-%     plot(0:(1/NFFT):(1/2-1/NFFT),P1(1:NFFT/2),'R')
-%     FFT_value=P1(1:NFFT/2);
-    
-end 
-
-for segment=4:4  % set which section u want to compute
-    s=signal(section_length(segment)+1:section_length(segment+1));
-    N=noise(section_length(segment)+1:section_length(segment+1));
-    n2=y1(section_length(segment)+1:section_length(segment+1));
-    Signal_Length= size(s);
-    %figure(segment);
-    subplot(4,3,2);
-    plot(t(1:Signal_Length(2)),s);
-    xlabel('time (s)'); 
-    ylabel('voltage (mV)');
-    txt=sprintf('Original Signal Segment %d', segment);
-    title(txt);
    
-    
-%%  plot signal+noise figure    
-    subplot(4,3,5);
-    plot(t(1:Signal_Length(2)),n2)      %x unit ms
-    Length=Signal_Length(2);
-    xlabel('time (s)'); 
-    ylabel('voltage (mV)');
-    txt=sprintf('Noisy Signal   PSNR= %f dB', psnr(s,n2,255));
-    title(txt);
-        
-%% -----------Different moving Filter----------------------------
-hpf=[1 -1];
-temp = conv2(hpf,s);
-subplot(4,3,8);
-plot(t(1:Signal_Length(2)),temp(1:Signal_Length(2)));
-    xlabel('time (s)'); 
-    ylabel('voltage (mV)');
-    title('MDF for original signal');    
-%% ------(Original) Frequency Domain------------------------------- 
-    NFFT = 2^nextpow2(Length);
-    Y=fft(s,NFFT);
-    P2 = abs(Y/Length);
-    P1 = P2(1:NFFT/2+1);
-    P1(2:end-1) = 2*P1(2:end-1);
-    subplot(4,3,11);
-    plot(0:(1/NFFT):(1/2-1/NFFT),P1(1:NFFT/2))   %0:(Fs/NFFT):(Fs/2-Fs/NFFT)-- not normalization
-    xlabel('Normalised Frequency (f)'); 
-    ylabel('voltage (mV)');
-    title('FFT');    
-    
-    
-%% ---------(With Noise) Frequency Domain------------ 
+%% --------- Frequency Domain (With Noise)------------ 
 
 %     NFFT = 2^nextpow2(Length);
 %     Y=fft(n2,NFFT);
@@ -127,31 +68,10 @@ plot(t(1:Signal_Length(2)),temp(1:Signal_Length(2)));
     
 end 
 
-
-%% FFT Function 
+%% MDF Function 
 function output=MDF(input_signal)
 hpf=[1 -1];
 output = conv2(hpf,input_signal);
-
 end
 
-% figure(6);
-% subplot(3,1,1)
-% plot(t(1:2296),signal);
-%     xlabel('time (s)'); 
-%     ylabel('voltage (mV)');
-%     title('Original Signal ');
-%     
-% subplot(3,1,2)
-% plot(t(1:2296),y1);
-%     xlabel('time (s)'); 
-%     ylabel('voltage (mV)');
-%     txt=sprintf('Noise & Singal  PSNR=%f', psnr(signal,y1,255));
-%     title(txt); 
-%     
-% subplot(3,1,3)
-% plot(t(1:2296),New);
-%     xlabel('time (s)'); 
-%     ylabel('voltage (mV)');
-%     txt=sprintf('Denoise Signal  PSNR=%f', psnr(signal,New,255));
-%     title(txt);
+
