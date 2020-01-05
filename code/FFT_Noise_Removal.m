@@ -9,7 +9,7 @@ Excel(1:5,1:50)=0;
 %% ---------Signal & NOise---------
 section_length=[0 704 1005 1709 2002 2296 ];
 Mix=noise+signal;
-New=signal;
+Original_signal=signal;
 
 Excel(5,100)=0;
 for segment=1:5  % set which section u want to compute
@@ -44,7 +44,10 @@ for segment=1:5  % set which section u want to compute
     plot(0:(1/NFFT):(1/2-1/NFFT),FFT_Temp_1(1:NFFT/2))   %0:(Fs/NFFT):(Fs/2-Fs/NFFT)-- not normalization
     xlabel('Normalised Frequency (f)'); 
     ylabel('voltage (mV)');
-    title('Frequency Spectrum');    
+    title('Frequency Spectrum');   
+    
+    
+
     
 %% ---------(With Noise) Frequency Domain--------- 
     NFFT = 2^nextpow2(Length);
@@ -113,7 +116,7 @@ xlabel('time (s)');
 ylabel('voltage (mV)');
 txt=sprintf('Dnoise Signal   PSNR=%f dB', psnr(Original_segment_signal,iFFT_output(1:Size),255));
 title(txt);   
-New(section_length(segment)+1:section_length(segment+1))=iFFT_output(1:Size);
+Original_signal(section_length(segment)+1:section_length(segment+1))=iFFT_output(1:Size);
 end 
 
 %% ----------------Plot the Recovered Signal----------------------------
@@ -132,8 +135,8 @@ plot(t(1:2296),Mix);
     title(txt); 
     
 subplot(3,1,3)
-plot(t(1:2296),New);
+plot(t(1:2296),Original_signal);
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
-    txt=sprintf('Denoise Signal  PSNR=%f dB', psnr(signal,New,255));
+    txt=sprintf('Denoise Signal  PSNR=%f dB', psnr(signal,Original_signal,255));
     title(txt);

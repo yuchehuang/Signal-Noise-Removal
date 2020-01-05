@@ -1,9 +1,12 @@
-t=linspace(0,10,512);
-%t= 0:0.1:2*pi;
+Fs=1000;
+Ts=1/Fs;
+Length=1000;
+t=(0:Length-1)*Ts;
+
 f1=10;
 f2=30;
-x=3*sin(5*t)-6*cos(9*t);
-n=5*rand(1,512);
+x=3*sin(2*pi*f1*t)-6*cos(2*pi*f2*t);
+n=5*rand(1,Length);
 Fs =10000;
 
 y=x+n;

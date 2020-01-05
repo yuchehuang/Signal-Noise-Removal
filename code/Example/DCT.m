@@ -6,7 +6,7 @@ Ts=1/Fs;
 Length=100;
 t=(0:Length-1)*Ts;
 
-f=10;
+f=20;
 f2=4;
 
 %noise=rand(1,Length);
