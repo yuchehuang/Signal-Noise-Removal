@@ -1,59 +1,94 @@
 clc
 close all
+
 Fs=1000;
 Ts=1/Fs;
 Length=100;
-f=10;
-f2=4;
 t=(0:Length-1)*Ts;
 
+f=10;
+f2=4;
+
 %noise=rand(1,Length);
-Signal= cos(2*pi*f*t)+rand(1,Length);% +cos(2*pi*f2*t);
-subplot(3,1,1);
+original_signal= 10*cos(2*pi*f*t);
+noise=1-2*rand(1,Length);% +cos(2*pi*f2*t);
+Signal=original_signal+noise;
+subplot(4,2,1);
+plot(t,original_signal)
+title('original signal figure');
+
+subplot(4,2,3);
+plot(t,noise)
+title('Noise signal figure');
+
+subplot(4,2,5);
 plot(t,Signal)
-title('Signal figure');
-mean(Signal)
+title('Contaminated signal figure');
+
 
 %% Original FFT
-
-NFFT = 2^nextpow2(Length); 
-Y = fft(Signal,NFFT)/Length;
-f1 = Fs/2*linspace(0,1,NFFT/2+1);
-subplot(3,1,2);
-plot(f1,2*abs(Y(1:NFFT/2+1))) 
+[megnitude,output]=myFFT_normalisation(original_signal,Fs);
+subplot(4,2,2);
+plot(megnitude,output)
 xlabel('Frequency (f)'); 
 ylabel('|x(f)|');
-title('Single-Side Amplitude Spectrum of x(t)');
+title('original_signal Spectrum of x(t)');
 
+%% Noise FFT
+[megnitude,output]=myFFT_normalisation(noise,Fs);
+subplot(4,2,4);
+plot(megnitude,output)
+xlabel('Frequency (f)'); 
+ylabel('|x(f)|');
+title('Noise Signal Spectrum of x(t)');
+
+%% Contaminated signal FFT
+[megnitude,output]=myFFT_normalisation(Signal,Fs);
+subplot(4,2,6);
+plot(megnitude,output)
+xlabel('Frequency (f)'); 
+ylabel('|x(f)|');
+title('Contaminated signal Spectrum of x(t)');
 
 %% Denoise 
-threshold=0.1;
-T=dct(eye(Length));
-Output=T*Signal';
-for compare=1:Length
-   if abs(Output(compare))< threshold
-   Output(compare)=0;
-   end
-end  
-New=idct(Output);
-mean(New);
+threshold=2;
+Output=myDCT(Signal, threshold, Length);
+
 %% Denoise FFT
 hold on
- 
-Y = fft(New,NFFT)/Length;
-f1 = Fs/2*linspace(0,1,NFFT/2+1);
-subplot(3,1,2);
-plot(f1,2*abs(Y(1:NFFT/2+1)),'r')
+[megnitude,output]=myFFT_normalisation(Output,Fs);
+plot(megnitude,output,'r')
 hold off 
 
-subplot(3,1,3);
-plot(t,New);
+subplot(4,2,8);
+plot(megnitude,output)
+xlabel('Frequency (f)'); 
+ylabel('|x(f)|');
+title('Denoise signal Spectrum of x(t)');
 
+subplot(4,2,7);
+plot(t,Output);
+title('Removal Signal');
 
 %% ------------ My function definition--------------------------%
-function output=myFFT(input_signal)
+function [megnitude,output]=myFFT_normalisation(input_signal,Sample_frequency)
  fft_Length=length(input_signal);
  fft_temp=2^nextpow2(fft_Length);
  output= fft(input_signal,fft_temp);
- output=abs(output);
+ output=2*abs(output(1:fft_Length/2+1));
+ megnitude= Sample_frequency/2*linspace(0,1,fft_Length/2+1); 
+end
+
+function output=myDCT(intput_signal, threshold, DCT_Length)
+    %% DCT
+    Filter=dct(eye(DCT_Length));
+    Output=Filter*intput_signal';
+    %% Noise Removal
+    for element=1:size(Output,1)
+        if abs(Output(element))< threshold
+            Output(element)=0;
+        end
+    end  
+    %% IDCT
+    output=idct(Output);
 end
