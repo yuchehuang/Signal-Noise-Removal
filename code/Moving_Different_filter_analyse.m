@@ -44,13 +44,9 @@ for segment=1:5  % set which section u want to compute
     ylabel('voltage (mV)');
     title('MDF for original signal');    
 %% ------(Original) Frequency Domain------------------------------- 
-    NFFT = 2^nextpow2(Length);
-    Y=fft(s,NFFT);
-    P2 = abs(Y/Length);
-    P1 = P2(1:NFFT/2+1);
-    P1(2:end-1) = 2*P1(2:end-1);
+    [f, megnitude]= myFFT_normalisation(s,Fs)
     subplot(4,Plot_column,segment+row(4));
-    plot(0:(1/NFFT):(1/2-1/NFFT),P1(1:NFFT/2))   %0:(Fs/NFFT):(Fs/2-Fs/NFFT)-- not normalization
+    plot(f, megnitude)   %0:(Fs/NFFT):(Fs/2-Fs/NFFT)-- not normalization
     xlabel('Normalised Frequency (f)'); 
     ylabel('voltage (mV)');
     title('FFT');    
@@ -72,6 +68,35 @@ end
 function output=MDF(input_signal)
 hpf=[1 -1];
 output = conv2(hpf,input_signal);
+end
+
+function [f, magnitude]= myFFT_normalised(input_signal)
+    signal_Length=length(input_signal);
+    fft_data= fft(input_signal);
+    fft_data=abs(fft_data/signal_Length);
+    magnitude=fft_data(1:signal_Length/2+1);
+    magnitude(2:end-1)=2*magnitude(2:end-1);
+    f= (0:(signal_Length/2))/signal_Length;
+end
+
+function [f,magnitude]=myFFT(input_signal,Sample_frequency)
+ signal_Length=length(input_signal);
+ fft_data= fft(input_signal);
+ fft_data=abs(fft_data/signal_Length);
+ magnitude=fft_data(1:signal_Length/2+1);
+ magnitude(2:end-1)=2*magnitude(2:end-1);
+ f= Sample_frequency*(0:(signal_Length/2))/signal_Length;
+end
+
+function [f, megnitude]= myFFT_normalisation(input_signal,Sample_frequency)
+    Length=length(input_signal);
+    NFFT = 2^nextpow2(Length);
+    FFT_output=fft(input_signal,NFFT);
+    FFT_abs = abs(FFT_output/Length);
+    FFT_signal_side_spectrum = FFT_abs(1:NFFT/2+1);
+    FFT_signal_side_spectrum(2:end-1) = 2*FFT_signal_side_spectrum(2:end-1);
+    f=0:(1/NFFT):(1/2-1/NFFT);
+    megnitude=FFT_signal_side_spectrum(1:NFFT/2);
 end
 
 

@@ -31,7 +31,7 @@ for segment=1:5  % set which section u want to compute
     
 %%  plot the contaminated signal     
     subplot(4,1,2);
-    plot(t(1:Size),Mix_Signal)      % unit ms
+    plot(t(1:Size),Mix_Signal)      
     Length=Size;
     xlabel('time (s)'); 
     ylabel('voltage (mV)');
@@ -39,25 +39,17 @@ for segment=1:5  % set which section u want to compute
     title(txt);
     
 %% ------(Original) Frequency Domain------------------------------- 
-    NFFT = 2^nextpow2(Length);
-    FFT_output=fft(Original_signal_segment,NFFT);
-    P2 = abs(FFT_output/Length);
-    P1 = P2(1:NFFT/2+1);
-    P1(2:end-1) = 2*P1(2:end-1);
+    [f, megnitude]= myFFT_normalisation(Original_signal_segment,Fs)
     subplot(4,1,3);
     hold on
-    plot(0:(1/NFFT):(1/2-1/NFFT),P1(1:NFFT/2))
+    plot(f, megnitude)
     xlabel('Normalised Frequency (f)');  
     ylabel('voltage (mV)');
         
     
 %% ------(With Noise) Frequency Domain------------------------------- 
-    NFFT = 2^nextpow2(Length);
-    FFT_output=fft(Mix_Signal,NFFT);
-    P2 = abs(FFT_output/Length);
-    P1 = P2(1:NFFT/2+1);
-    P1(2:end-1) = 2*P1(2:end-1);
-    plot(0:(1/NFFT):(1/2-1/NFFT),P1(1:NFFT/2),'R')
+    [f, megnitude]= myFFT_normalisation(Mix_Signal,Fs)
+    plot(f, megnitude,'R')
     FFT_value=P1(1:NFFT/2);
  %% ---------DCT  Denoise Initialisation---------------------
  clear transform_array
@@ -153,18 +145,14 @@ for segment=1:5  % set which section u want to compute
 
     
 %% -------------(Denoise) Frequency Domain---------------------
-    FFT_output=fft(Signal_Segment,NFFT);
-    P2 = abs(FFT_output/Length);
-    P1 = P2(1:NFFT/2+1);
-    P1(2:end-1) = 2*P1(2:end-1);
-    plot(0:(1/NFFT):(1/2-1/NFFT),P1(1:NFFT/2),'G');
+    [f, megnitude]= myFFT_normalisation(Signal_Segment,Fs)
+    plot(f, megnitude,'G');
     txt=sprintf('FFT threshold= %.2f',MAX);
     title(txt);
     hold off
-    
     legend('Original','Noisy',' Denoise')
     
-%% ----------------IFFT----------------------------
+%% ----------------Show Recovered signal & Segment combine----------------------------
 subplot(4,1,4);
 plot(t(1:Size),Signal_Segment);
 sprintf('Denoise PSNR for S2: %f', psnr(Original_signal_segment,Signal_Segment,255));
@@ -197,5 +185,34 @@ plot(t(1:2296),Recover_signal_temp);
     ylabel('voltage (mV)');
     txt=sprintf('Denoise Signal  PSNR=%f dB', psnr(signal,Recover_signal_temp,255));
     title(txt);
+    
+function [f, magnitude]= myFFT_normalised(input_signal)
+    signal_Length=length(input_signal);
+    fft_data= fft(input_signal);
+    fft_data=abs(fft_data/signal_Length);
+    magnitude=fft_data(1:signal_Length/2+1);
+    magnitude(2:end-1)=2*magnitude(2:end-1);
+    f= (0:(signal_Length/2))/signal_Length;
+end
+
+function [f,magnitude]=myFFT(input_signal,Sample_frequency)
+ signal_Length=length(input_signal);
+ fft_data= fft(input_signal);
+ fft_data=abs(fft_data/signal_Length);
+ magnitude=fft_data(1:signal_Length/2+1);
+ magnitude(2:end-1)=2*magnitude(2:end-1);
+ f= Sample_frequency*(0:(signal_Length/2))/signal_Length;
+end
+
+function [f, megnitude]= myFFT_normalisation(input_signal,Sample_frequency)
+    Length=length(input_signal);
+    NFFT = 2^nextpow2(Length);
+    FFT_output=fft(input_signal,NFFT);
+    FFT_abs = abs(FFT_output/Length);
+    FFT_signal_side_spectrum = FFT_abs(1:NFFT/2+1);
+    FFT_signal_side_spectrum(2:end-1) = 2*FFT_signal_side_spectrum(2:end-1);
+    f=0:(1/NFFT):(1/2-1/NFFT);
+    megnitude=FFT_signal_side_spectrum(1:NFFT/2);
+end
     
     

@@ -46,9 +46,6 @@ for segment=1:5  % set which section u want to compute
     ylabel('voltage (mV)');
     title('Frequency Spectrum');   
     
-    
-
-    
 %% ---------(With Noise) Frequency Domain--------- 
     NFFT = 2^nextpow2(Length);
     FFT_output=fft(Mix_Signal,NFFT);
@@ -140,3 +137,46 @@ plot(t(1:2296),Original_signal);
     ylabel('voltage (mV)');
     txt=sprintf('Denoise Signal  PSNR=%f dB', psnr(signal,Original_signal,255));
     title(txt);
+    
+function [f, magnitude]= myFFT_normalised(input_signal)
+    signal_Length=length(input_signal);
+    fft_data= fft(input_signal);
+    fft_data=abs(fft_data/signal_Length);
+    magnitude=fft_data(1:signal_Length/2+1);
+    magnitude(2:end-1)=2*magnitude(2:end-1);
+    f= (0:(signal_Length/2))/signal_Length;
+end
+
+function [f,magnitude]=myFFT(input_signal,Sample_frequency)
+ signal_Length=length(input_signal);
+ fft_data= fft(input_signal);
+ fft_data=abs(fft_data/signal_Length);
+ magnitude=fft_data(1:signal_Length/2+1);
+ magnitude(2:end-1)=2*magnitude(2:end-1);
+ f= Sample_frequency*(0:(signal_Length/2))/signal_Length;
+end
+
+function [f, megnitude]= myFFT_normalisation(input_signal,Sample_frequency)
+    Length=length(input_signal);
+    NFFT = 2^nextpow2(Length);
+    FFT_output=fft(input_signal,NFFT);
+    FFT_abs = abs(FFT_output/Length);
+    FFT_signal_side_spectrum = FFT_abs(1:NFFT/2+1);
+    FFT_signal_side_spectrum(2:end-1) = 2*FFT_signal_side_spectrum(2:end-1);
+    f=0:(1/NFFT):(1/2-1/NFFT);
+    megnitude=FFT_signal_side_spectrum(1:NFFT/2);
+end
+
+function output=myDCT(intput_signal, threshold, DCT_Length)
+    %% DCT
+    Filter=dct(eye(DCT_Length));
+    Output=Filter*intput_signal';
+    %% Noise Removal
+    for element=1:size(Output,1)
+        if abs(Output(element))< threshold
+            Output(element)=0;
+        end
+    end  
+    %% IDCT
+    output=idct(Output);
+end
