@@ -39,7 +39,7 @@ for segment=1:5  % set which section u want to compute
     title(txt);
     
 %% ------(Original) Frequency Domain------------------------------- 
-    [f, megnitude]= myFFT_normalisation(Original_signal_segment,Fs)
+    [f, megnitude]= myFFT_normalisation(Original_signal_segment,Fs);
     subplot(4,1,3);
     hold on
     plot(f, megnitude)
@@ -48,9 +48,9 @@ for segment=1:5  % set which section u want to compute
         
     
 %% ------(With Noise) Frequency Domain------------------------------- 
-    [f, megnitude]= myFFT_normalisation(Mix_Signal,Fs)
+    [f, megnitude]= myFFT_normalisation(Mix_Signal,Fs);
     plot(f, megnitude,'R')
-    FFT_value=P1(1:NFFT/2);
+    
  %% ---------DCT  Denoise Initialisation---------------------
  clear transform_array
  clear DCT_temp
@@ -145,7 +145,7 @@ for segment=1:5  % set which section u want to compute
 
     
 %% -------------(Denoise) Frequency Domain---------------------
-    [f, megnitude]= myFFT_normalisation(Signal_Segment,Fs)
+    [f, megnitude]= myFFT_normalisation(Signal_Segment,Fs);
     plot(f, megnitude,'G');
     txt=sprintf('FFT threshold= %.2f',MAX);
     title(txt);
