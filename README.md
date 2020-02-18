@@ -3,7 +3,7 @@
 
  ## Key Features
 * This project demonstrates the noise removal by using FFT analysis and Decrete Cosine Transform (DCT)
-and evaluate the performance as the conclusion. 
+from a contaminated signal. 
 
 * The code is shown in the in the [Code](https://github.com/yuchehuang/Signal-Noise-Removal/tree/master/code)  folder
 
@@ -11,4 +11,5 @@ and evaluate the performance as the conclusion.
 
 ## Result
  
-
+ 
+![alt text](https://github.com/yuchehuang/Signal-Noise-Removal/blob/master/picture/DCT%20Denoise.png)
