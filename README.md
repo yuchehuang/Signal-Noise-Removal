@@ -14,7 +14,7 @@ from a contaminated signal.
 
 ![alt text](https://github.com/yuchehuang/Signal-Noise-Removal/blob/master/picture/FFT%20Denoise.png)
 
-![alt text](https://github.com/yuchehuang/Signal-Noise-Removal/blob/master/picture/square_result%20FFT.JPG)
+![alt text](https://github.com/yuchehuang/Signal-Noise-Removal/blob/master/picture/Picture1.png)
 
 
 It is clearly that the signal still suffering in the contaminting of noise after passing by the denoise algorithm.
