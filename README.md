@@ -23,3 +23,6 @@ Due to the noise components are distributed irregularly through the spectrum, so
  
 ### DCT
 ![alt text](https://github.com/yuchehuang/Signal-Noise-Removal/blob/master/picture/DCT%20Denoise.png)
+
+![alt text](https://github.com/yuchehuang/Signal-Noise-Removal/blob/master/picture/Picture2.png)
+
