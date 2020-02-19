@@ -24,6 +24,8 @@ Due to the noise components are distributed irregularly through the spectrum, so
 ### DCT
 ![alt text](https://github.com/yuchehuang/Signal-Noise-Removal/blob/master/picture/DCT%20Denoise.png)
 
+![alt text](https://github.com/yuchehuang/Signal-Noise-Removal/blob/master/picture/DCT%20segment.JPG)
+
 ![alt text](https://github.com/yuchehuang/Signal-Noise-Removal/blob/master/picture/Picture2.png)
 
 Due to the power compaction in DCT, the main energy of the component is concentrated in some parameter and using others to represent the small variation in different frequency. It is good for data compression due to the transforms adopts the less data to represent the original figure but losing detail. Therefore, based on this concept, the noise components which are distributed into the whole spectrum can be eliminated efficiently by removing these tiny value of coefficient
